@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.hibernate.validator.constraints.br.CPF;
 
@@ -31,8 +30,12 @@ public class CadastroUsuarioDTO {
     @NotBlank(message = "O campo 'email' não pode estar em branco.")
     private String email;
 
+    @NotNull(message = "O campo 'senha' é obrigatório.")
+    @NotBlank(message = "O campo 'senha' não pode estar em branco.")
+    private String senha;
+
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataNascimento;
 
-    private List<String> roles;
+    private String role;
 }
