@@ -78,6 +78,9 @@ Observacao:
 ## Conteudo da pasta `docs`
 
 Estrutura atual:
+- `docs/architecture/`
+  - `Arquitetura-CV-Authentication.drawio`
+  - `Arquitetura-CV-Authenticationpng.png`
 - `docs/collections/postman/`
   - `CV-Authentication-Service-H2.postman_collection.json`
   - `CV-Authentication-Service-H2.postman_environment.json`
@@ -90,9 +93,14 @@ Estrutura atual:
 ### Para que serve cada item
 - **Collection Postman**: conjunto de requests prontos para testar login e rotas de usuarios.
 - **Environment Postman**: variaveis como `baseUrl`, `apiPrefix`, `authToken`, `usuarioId` e `usuarioEmail`.
+- **`docs/architecture`**: arquivos da arquitetura da aplicacao, incluindo o desenho editavel (`.drawio`) e a imagem exportada.
 - **`docs/database/ddl`**: scripts DDL (create/alter) para referencia de estrutura de tabelas.
 - **`docs/database/diagram`**: diagramas do banco (ex.: ERD exportado do DBeaver).
 - **`docs/secret`**: artefatos de configuracao local (ex.: pacote com variaveis de ambiente).
+
+### Arquitetura da aplicacao
+
+![Arquitetura da aplicacao](docs/architecture/Arquitetura-CV-Authenticationpng.png)
 
 ### Diagrama do banco
 
