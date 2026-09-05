@@ -1,0 +1,312 @@
+{
+  "info": {
+    "_postman_id": "9f0ddf5b-c418-49d8-804b-554865f99563",
+    "name": "CV Authentication Service (H2)",
+    "description": "Colecao para testes da API com banco H2 em memoria.\n\nObservacao: o projeto hoje possui `server.servlet.context-path=/api` e os controllers com prefixo `/api`. Por isso, o valor padrao de `apiPrefix` esta como `/api/api`. Se sua rota estiver diferente, ajuste apenas esta variavel.\n\nRegras de permissao:\n- Login: publico\n- Leituras de usuarios: exigem token com perfil ADMINISTRADOR ou COORDENADOR\n- Registrar, ativar, desativar e deletar usuarios: apenas ADMINISTRADOR.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "apiPrefix",
+      "value": "/api/api"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "usuarioId",
+      "value": "1"
+    },
+    {
+      "key": "usuarioEmail",
+      "value": "admin@classvision.com"
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticacao",
+      "item": [
+        {
+          "name": "Login (admin padrao)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@classvision.com\",\n  \"senha\": \"admin123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Faz login e salva automaticamente o token JWT na variavel `authToken`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var response = pm.response.json();",
+                  "if (response && response.token) {",
+                  "    pm.collectionVariables.set('authToken', response.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Coordenador Teste\",\n  \"cpf\": \"86025591054\",\n  \"email\": \"coord.teste@classvision.com\",\n  \"senha\": \"SenhaForte123\",\n  \"dataNascimento\": \"15/09/1990\",\n  \"role\": \"COORDENADOR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "Listar usuarios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "usuarios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obter usuario por id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obter usuario por email",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/email/{{usuarioEmail}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "usuarios",
+                "email",
+                "{{usuarioEmail}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Administrador Atualizado\",\n  \"cpf\": \"86025591054\",\n  \"email\": \"admin@classvision.com\",\n  \"senha\": \"admin123456\",\n  \"dataNascimento\": \"01/01/1990\",\n  \"role\": \"ADMINISTRADOR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Desativar usuario (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}/desativar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "usuarios",
+                "{{usuarioId}}",
+                "desativar"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ativar usuario (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}/ativar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "usuarios",
+                "{{usuarioId}}",
+                "ativar"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Deletar usuario (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Infra",
+      "item": [
+        {
+          "name": "H2 Console",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/h2-console",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "h2-console"
+              ]
+            },
+            "description": "Endpoint da console H2 (uso manual no navegador)."
+          }
+        }
+      ]
+    }
+  ]
+}
+
