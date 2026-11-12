@@ -19,32 +19,32 @@ public class InstituicaoController {
 
     private final InstituicaoService instituicaoService;
 
-    @PostMapping
+    @PostMapping("/cadastrar-instituicao")
     public ResponseEntity<InstituicaoResponseDTO> cadastrar(@Valid @RequestBody InstituicaoDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(instituicaoService.cadastrar(dto));
     }
 
-    @GetMapping
+    @GetMapping("/listar-instituicoes")
     public ResponseEntity<List<InstituicaoResponseDTO>> listarTodas() {
         return ResponseEntity.ok(instituicaoService.listarTodas());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/buscar-instituicao/{id}")
     public ResponseEntity<InstituicaoResponseDTO> obterPorId(@PathVariable Long id) {
         return ResponseEntity.ok(instituicaoService.obterPorId(id));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/atualizar-instituicao/{id}")
     public ResponseEntity<InstituicaoResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody InstituicaoDTO dto) {
         return ResponseEntity.ok(instituicaoService.atualizar(id, dto));
     }
 
-    @PatchMapping("/{id}/ativar")
+    @PatchMapping("/ativar-instituicao/{id}")
     public ResponseEntity<InstituicaoResponseDTO> ativar(@PathVariable Long id) {
         return ResponseEntity.ok(instituicaoService.alterarSituacao(id, SituacaoInstituicaoEnum.ATIVA));
     }
 
-    @PatchMapping("/{id}/desativar")
+    @PatchMapping("/desativar-instituicao/{id}")
     public ResponseEntity<InstituicaoResponseDTO> desativar(@PathVariable Long id) {
         return ResponseEntity.ok(instituicaoService.alterarSituacao(id, SituacaoInstituicaoEnum.INATIVA));
     }

@@ -62,6 +62,7 @@ Todo usuário pertence a uma **instituição**, que é cadastrada pelo administr
 |---|---|
 | Base URL local | `http://localhost:8080` |
 | Prefixo das rotas | `/api` |
+| Padrão das rotas | `/api/{recurso}/{acao-recurso}/{id}`, ex.: `/api/instituicoes/cadastrar-instituicao`, `/api/usuarios/buscar-usuario/5` (lista completa na [seção 3](#matriz-de-permissões-deste-serviço)) |
 | Formato | JSON (`Content-Type: application/json`) |
 | Autenticação | `Authorization: Bearer <token>` |
 | Data (`LocalDate`) | `dd/MM/yyyy`, ex.: `25/03/1990` |
@@ -95,20 +96,20 @@ Os nomes são **sensíveis a maiúsculas/minúsculas**: envie sempre em maiúscu
 | Método | Rota | Público | ADMINISTRADOR | COORDENADOR | Demais roles |
 |---|---|:-:|:-:|:-:|:-:|
 | `POST` | `/api/auth/login` | ✅ | ✅ | ✅ | ✅ |
-| `POST` | `/api/auth/register` | ❌ | ✅ | ❌ | ❌ |
-| `GET` | `/api/usuarios` | ❌ | ✅ | ✅ | ❌ |
-| `GET` | `/api/usuarios/{id}` | ❌ | ✅ | ✅ | ❌ |
-| `GET` | `/api/usuarios/email/{email}` | ❌ | ✅ | ✅ | ❌ |
-| `PUT` | `/api/usuarios/{id}` | ❌ | ✅ | ✅ | ❌ |
-| `PATCH` | `/api/usuarios/{id}/desativar` | ❌ | ✅ | ❌ | ❌ |
-| `PATCH` | `/api/usuarios/{id}/ativar` | ❌ | ✅ | ❌ | ❌ |
-| `DELETE` | `/api/usuarios/{id}` | ❌ | ✅ | ❌ | ❌ |
-| `POST` | `/api/instituicoes` | ❌ | ✅ | ❌ | ❌ |
-| `GET` | `/api/instituicoes` | ❌ | ✅ | ✅ | ✅ |
-| `GET` | `/api/instituicoes/{id}` | ❌ | ✅ | ✅ | ✅ |
-| `PUT` | `/api/instituicoes/{id}` | ❌ | ✅ | ❌ | ❌ |
-| `PATCH` | `/api/instituicoes/{id}/ativar` | ❌ | ✅ | ❌ | ❌ |
-| `PATCH` | `/api/instituicoes/{id}/desativar` | ❌ | ✅ | ❌ | ❌ |
+| `POST` | `/api/usuarios/cadastrar-usuario` | ❌ | ✅ | ❌ | ❌ |
+| `GET` | `/api/usuarios/listar-usuarios` | ❌ | ✅ | ✅ | ❌ |
+| `GET` | `/api/usuarios/buscar-usuario/{id}` | ❌ | ✅ | ✅ | ❌ |
+| `GET` | `/api/usuarios/buscar-usuario-por-email/{email}` | ❌ | ✅ | ✅ | ❌ |
+| `PUT` | `/api/usuarios/atualizar-usuario/{id}` | ❌ | ✅ | ✅ | ❌ |
+| `PATCH` | `/api/usuarios/desativar-usuario/{id}` | ❌ | ✅ | ❌ | ❌ |
+| `PATCH` | `/api/usuarios/ativar-usuario/{id}` | ❌ | ✅ | ❌ | ❌ |
+| `DELETE` | `/api/usuarios/excluir-usuario/{id}` | ❌ | ✅ | ❌ | ❌ |
+| `POST` | `/api/instituicoes/cadastrar-instituicao` | ❌ | ✅ | ❌ | ❌ |
+| `GET` | `/api/instituicoes/listar-instituicoes` | ❌ | ✅ | ✅ | ✅ |
+| `GET` | `/api/instituicoes/buscar-instituicao/{id}` | ❌ | ✅ | ✅ | ✅ |
+| `PUT` | `/api/instituicoes/atualizar-instituicao/{id}` | ❌ | ✅ | ❌ | ❌ |
+| `PATCH` | `/api/instituicoes/ativar-instituicao/{id}` | ❌ | ✅ | ❌ | ❌ |
+| `PATCH` | `/api/instituicoes/desativar-instituicao/{id}` | ❌ | ✅ | ❌ | ❌ |
 
 - Sem token, ou com token inválido/expirado: **`401 Unauthorized`**.
 - Com token válido, mas role sem permissão: **`403 Forbidden`**.
@@ -270,7 +271,7 @@ Alternativa com biblioteca: [`jwt-decode`](https://www.npmjs.com/package/jwt-dec
 Enviando o token nas requisições:
 
 ```js
-fetch('http://localhost:8080/api/usuarios', {
+fetch('http://localhost:8080/api/usuarios/listar-usuarios', {
   headers: { Authorization: `Bearer ${token}` },
 });
 ```
@@ -398,7 +399,7 @@ Cada usuário pertence a **uma** instituição. As instituições são cadastrad
 | `situacao` | string | `ATIVA` ou `INATIVA` |
 | `criadoEm` / `atualizadoEm` | string | `dd/MM/yyyy HH:mm:ss`, preenchidos pelo servidor |
 
-### Cadastrar: `POST /api/instituicoes`
+### Cadastrar: `POST /api/instituicoes/cadastrar-instituicao`
 
 **Permissão:** `ADMINISTRADOR`.
 
@@ -433,19 +434,19 @@ Resposta: `201 Created`
 }
 ```
 
-### Listar: `GET /api/instituicoes`
+### Listar: `GET /api/instituicoes/listar-instituicoes`
 
 **Permissão:** qualquer usuário autenticado. Retorna `200` com todas as instituições (ativas e inativas). Não há paginação.
 
-### Buscar por ID: `GET /api/instituicoes/{id}`
+### Buscar por ID: `GET /api/instituicoes/buscar-instituicao/{id}`
 
 **Permissão:** qualquer usuário autenticado. `200`, ou `404` (`Instituição não encontrada com ID: 99`).
 
-### Atualizar: `PUT /api/instituicoes/{id}`
+### Atualizar: `PUT /api/instituicoes/atualizar-instituicao/{id}`
 
 **Permissão:** `ADMINISTRADOR`. Mesmo corpo e mesmas validações do cadastro (`nome`, `cnpj` e `telefone` obrigatórios). A `situacao` não é alterada por aqui. Respostas: `200`, `400`, `404` ou `409`.
 
-### Ativar / desativar: `PATCH /api/instituicoes/{id}/ativar` e `PATCH /api/instituicoes/{id}/desativar`
+### Ativar / desativar: `PATCH /api/instituicoes/ativar-instituicao/{id}` e `PATCH /api/instituicoes/desativar-instituicao/{id}`
 
 **Permissão:** `ADMINISTRADOR`. Altera a `situacao` para `ATIVA` ou `INATIVA`. Retorna `200` com a instituição.
 
@@ -470,12 +471,12 @@ Efeitos de uma instituição **`INATIVA`**:
 
 ## 7. Cadastro de usuários
 
-`POST /api/auth/register` (**somente `ADMINISTRADOR`**)
+`POST /api/usuarios/cadastrar-usuario` (**somente `ADMINISTRADOR`**)
 
 ### Requisição
 
 ```http
-POST /api/auth/register
+POST /api/usuarios/cadastrar-usuario
 Authorization: Bearer <token-do-administrador>
 Content-Type: application/json
 ```
@@ -555,19 +556,19 @@ O cadastro **não** faz login automático: o novo usuário deve chamar `/api/aut
 
 Todas as rotas exigem `Authorization: Bearer <token>`. Os objetos de usuário retornados seguem o formato da [resposta de cadastro](#resposta-de-sucesso-201-created) (incluindo `instituicaoId` e `instituicaoNome`).
 
-### Listar todos: `GET /api/usuarios`
+### Listar todos: `GET /api/usuarios/listar-usuarios`
 
 **Permissão:** `ADMINISTRADOR`, `COORDENADOR`. Retorna `200` com um array de usuários, incluindo os inativos. Não há paginação.
 
-### Buscar por ID: `GET /api/usuarios/{id}`
+### Buscar por ID: `GET /api/usuarios/buscar-usuario/{id}`
 
 **Permissão:** `ADMINISTRADOR`, `COORDENADOR`. `200` com o usuário, ou `404` (`Usuário não encontrado com ID: 99`).
 
-### Buscar por e-mail: `GET /api/usuarios/email/{email}`
+### Buscar por e-mail: `GET /api/usuarios/buscar-usuario-por-email/{email}`
 
-**Permissão:** `ADMINISTRADOR`, `COORDENADOR`. Ex.: `GET /api/usuarios/email/maria.souza@classvision.com`. `200` ou `404`.
+**Permissão:** `ADMINISTRADOR`, `COORDENADOR`. Ex.: `GET /api/usuarios/buscar-usuario-por-email/maria.souza@classvision.com`. `200` ou `404`.
 
-### Atualizar: `PUT /api/usuarios/{id}`
+### Atualizar: `PUT /api/usuarios/atualizar-usuario/{id}`
 
 **Permissão:** `ADMINISTRADOR`, `COORDENADOR`.
 
@@ -584,15 +585,15 @@ Respostas: `200` com o usuário atualizado, `400`, `404` ou `409`.
 
 > Se o **e-mail** de um usuário for alterado, os tokens já emitidos para ele deixam de funcionar (`401`), porque o `sub` do token aponta para o e-mail antigo. Ele precisa fazer login novamente.
 
-### Desativar: `PATCH /api/usuarios/{id}/desativar`
+### Desativar: `PATCH /api/usuarios/desativar-usuario/{id}`
 
 **Permissão:** `ADMINISTRADOR`. Marca `ativo = false` (*soft delete*): o registro continua no banco e o usuário **não consegue mais fazer login**. Retorna `200` com o usuário.
 
-### Ativar: `PATCH /api/usuarios/{id}/ativar`
+### Ativar: `PATCH /api/usuarios/ativar-usuario/{id}`
 
 **Permissão:** `ADMINISTRADOR`. Marca `ativo = true`. Retorna `200` com o usuário.
 
-### Excluir: `DELETE /api/usuarios/{id}`
+### Excluir: `DELETE /api/usuarios/excluir-usuario/{id}`
 
 **Permissão:** `ADMINISTRADOR`. Remove o registro **definitivamente** do banco. Retorna `204 No Content`, ou `404`.
 
@@ -645,13 +646,13 @@ TOKEN=$(curl -s -X POST $BASE/api/auth/login \
   | sed -E 's/.*"token":"([^"]+)".*/\1/')
 
 # 2. Cadastrar uma instituição (anote o "id" retornado)
-curl -X POST $BASE/api/instituicoes \
+curl -X POST $BASE/api/instituicoes/cadastrar-instituicao \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"nome":"Instituto Federal Goiano - Campus Urutaí","cnpj":"10651417000500","telefone":"(64) 3465-1900"}'
 
 # 3. Cadastrar um coordenador nessa instituição
-curl -X POST $BASE/api/auth/register \
+curl -X POST $BASE/api/usuarios/cadastrar-usuario \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"nome":"Maria Souza","cpf":"52998224725","email":"maria@classvision.com","senha":"senha123","dataNascimento":"25/03/1990","role":"COORDENADOR","instituicaoId":2}'
@@ -662,10 +663,10 @@ curl -X POST $BASE/api/auth/login \
   -d '{"email":"maria@classvision.com","senha":"senha123"}'
 
 # 5. Listar usuários (ADMINISTRADOR ou COORDENADOR)
-curl $BASE/api/usuarios -H "Authorization: Bearer $TOKEN"
+curl $BASE/api/usuarios/listar-usuarios -H "Authorization: Bearer $TOKEN"
 
 # 6. Desativar o usuário de id 2 (ADMINISTRADOR)
-curl -X PATCH $BASE/api/usuarios/2/desativar -H "Authorization: Bearer $TOKEN"
+curl -X PATCH $BASE/api/usuarios/desativar-usuario/2 -H "Authorization: Bearer $TOKEN"
 ```
 
 No PowerShell:
@@ -673,7 +674,7 @@ No PowerShell:
 ```powershell
 $login = Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/auth/login `
   -ContentType 'application/json' -Body '{"email":"admin@classvision.com","senha":"admin123456"}'
-Invoke-RestMethod -Uri http://localhost:8080/api/usuarios -Headers @{ Authorization = "Bearer $($login.token)" }
+Invoke-RestMethod -Uri http://localhost:8080/api/usuarios/listar-usuarios -Headers @{ Authorization = "Bearer $($login.token)" }
 ```
 
 ---
@@ -690,7 +691,7 @@ Comportamentos atuais que quem consome o serviço precisa conhecer:
 | 4 | **Não há configuração de CORS.** | Um front que roda no navegador em outro domínio/porta (ex.: `localhost:4200`) tem as chamadas **bloqueadas pelo navegador**. Chamadas servidor-a-servidor, Postman e curl funcionam. |
 | 5 | Não há refresh token nem logout no servidor. | Ao expirar, novo login. "Logout" = o cliente descarta o token. |
 | 6 | Não há regra de força mínima de senha. | Qualquer senha não vazia é aceita. |
-| 7 | `GET /api/usuarios` não tem paginação. | Pode ficar pesado com muitos usuários. |
+| 7 | `GET /api/usuarios/listar-usuarios` não tem paginação. | Pode ficar pesado com muitos usuários. |
 | 8 | **As rotas de usuários não filtram por instituição.** Um `COORDENADOR` lista, busca e edita usuários de **todas** as instituições, e qualquer autenticado lista todas as instituições. | Se cada instituição deve enxergar só os próprios dados, essas rotas precisam filtrar pelo `instituicaoId` do token. |
 | 9 | Desativar uma instituição **não bloqueia** o login dos usuários dela. | Apenas impede novos vínculos. Se a regra for bloquear o acesso, isso precisa ser implementado. |
 | 10 | O `instituicaoId` do token é uma foto do login. | Se o usuário for transferido de instituição, o token antigo mantém a instituição anterior até expirar. |
@@ -728,15 +729,20 @@ Quando aparecer `Started CvAuthenticationServiceApplication` no log, a API está
 
 ### Testando pelo Postman
 
-Importe os arquivos de `docs/collections/postman/` (collection + environment). Variáveis do environment:
+Importe os arquivos de `docs/collections/postman/` (collection + environment). A collection tem as pastas **Autenticacao**, **Instituicoes**, **Usuarios** e **Infra**. Todas as requisições, exceto o login, usam automaticamente o token salvo.
 
-| Variável | Valor padrão |
-|---|---|
-| `baseUrl` | `http://localhost:8080` |
-| `apiPrefix` | `/api` |
-| `authToken` | preenchido após o login |
-| `usuarioId` | `1` |
-| `usuarioEmail` | `admin@classvision.com` |
+Ordem sugerida: **Login** → **Cadastrar instituicao** → **Cadastrar usuario**. Cada uma salva o valor retornado nas variáveis usadas pelas seguintes.
+
+| Variável | Onde fica | Valor inicial | Preenchida automaticamente por |
+|---|---|---|---|
+| `baseUrl` | environment | `http://localhost:8080` | — |
+| `apiPrefix` | environment | `/api` | — |
+| `authToken` | collection | vazio | Login |
+| `instituicaoId` | collection | `1` (ClassVision) | Cadastrar instituicao |
+| `usuarioId` | collection | `2` | Cadastrar usuario |
+| `usuarioEmail` | collection | `coord.teste@classvision.com` | Cadastrar usuario |
+
+> Não crie `authToken`, `usuarioId` ou `instituicaoId` no environment. Variáveis do environment têm prioridade sobre as da collection e impediriam os scripts de atualizar os valores.
 
 ---
 

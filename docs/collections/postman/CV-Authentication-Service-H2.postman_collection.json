@@ -2,8 +2,18 @@
   "info": {
     "_postman_id": "9f0ddf5b-c418-49d8-804b-554865f99563",
     "name": "CV Authentication Service (H2)",
-    "description": "Colecao para testes da API com banco H2 em memoria.\n\nObservacao: o projeto hoje possui `server.servlet.context-path=/api` e os controllers com prefixo `/api`. Por isso, o valor padrao de `apiPrefix` esta como `/api/api`. Se sua rota estiver diferente, ajuste apenas esta variavel.\n\nRegras de permissao:\n- Login: publico\n- Leituras de usuarios: exigem token com perfil ADMINISTRADOR ou COORDENADOR\n- Registrar, ativar, desativar e deletar usuarios: apenas ADMINISTRADOR.",
+    "description": "Colecao para testes da API.\n\nOrdem sugerida:\n1. Autenticacao > Login (salva o token em `authToken`)\n2. Instituicoes > Cadastrar instituicao (salva o id em `instituicaoId`)\n3. Usuarios > Cadastrar usuario (salva o id em `usuarioId`)\n\nTodas as requisicoes (exceto o login) usam o token salvo em `authToken` via autenticacao Bearer da colecao.\n\nRegras de permissao:\n- Login: publico\n- Usuarios: cadastrar, ativar, desativar e excluir apenas ADMINISTRADOR; listar, buscar e atualizar ADMINISTRADOR ou COORDENADOR\n- Instituicoes: cadastrar, atualizar, ativar e desativar apenas ADMINISTRADOR; listar e buscar qualquer usuario autenticado\n\nDatas no formato dd/MM/yyyy.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
   },
   "variable": [
     {
@@ -12,7 +22,7 @@
     },
     {
       "key": "apiPrefix",
-      "value": "/api/api"
+      "value": "/api"
     },
     {
       "key": "authToken",
@@ -20,11 +30,15 @@
     },
     {
       "key": "usuarioId",
-      "value": "1"
+      "value": "2"
     },
     {
       "key": "usuarioEmail",
-      "value": "admin@classvision.com"
+      "value": "coord.teste@classvision.com"
+    },
+    {
+      "key": "instituicaoId",
+      "value": "1"
     }
   ],
   "item": [
@@ -33,31 +47,6 @@
       "item": [
         {
           "name": "Login (admin padrao)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@classvision.com\",\n  \"senha\": \"admin123456\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "{{apiPrefix}}",
-                "auth",
-                "login"
-              ]
-            },
-            "description": "Faz login e salva automaticamente o token JWT na variavel `authToken`."
-          },
           "event": [
             {
               "listen": "test",
@@ -75,36 +64,141 @@
                 ]
               }
             }
-          ]
-        },
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@classvision.com\",\n  \"senha\": \"admin123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "auth", "login"]
+            },
+            "description": "Faz login e salva automaticamente o token JWT na variavel `authToken`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Instituicoes",
+      "item": [
         {
-          "name": "Register usuario",
+          "name": "Cadastrar instituicao (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var response = pm.response.json();",
+                  "if (response && response.id) {",
+                  "    pm.collectionVariables.set('instituicaoId', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Coordenador Teste\",\n  \"cpf\": \"86025591054\",\n  \"email\": \"coord.teste@classvision.com\",\n  \"senha\": \"SenhaForte123\",\n  \"dataNascimento\": \"15/09/1990\",\n  \"role\": \"COORDENADOR\"\n}"
+              "raw": "{\n  \"nome\": \"Instituto Federal Goiano - Campus Urutai\",\n  \"cnpj\": \"10.651.417/0005-00\",\n  \"telefone\": \"(64) 3465-1900\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "{{apiPrefix}}",
-                "auth",
-                "register"
-              ]
+              "raw": "{{baseUrl}}{{apiPrefix}}/instituicoes/cadastrar-instituicao",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "instituicoes", "cadastrar-instituicao"]
+            },
+            "description": "Cadastra uma instituicao e salva o id retornado na variavel `instituicaoId`."
+          }
+        },
+        {
+          "name": "Listar instituicoes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/instituicoes/listar-instituicoes",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "instituicoes", "listar-instituicoes"]
+            }
+          }
+        },
+        {
+          "name": "Buscar instituicao por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/instituicoes/buscar-instituicao/{{instituicaoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "instituicoes", "buscar-instituicao", "{{instituicaoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Atualizar instituicao (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"IF Goiano - Campus Urutai\",\n  \"cnpj\": \"10651417000500\",\n  \"telefone\": \"64 3465-1900\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/instituicoes/atualizar-instituicao/{{instituicaoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "instituicoes", "atualizar-instituicao", "{{instituicaoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Desativar instituicao (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/instituicoes/desativar-instituicao/{{instituicaoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "instituicoes", "desativar-instituicao", "{{instituicaoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Ativar instituicao (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/instituicoes/ativar-instituicao/{{instituicaoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "instituicoes", "ativar-instituicao", "{{instituicaoId}}"]
             }
           }
         }
@@ -114,71 +208,79 @@
       "name": "Usuarios",
       "item": [
         {
+          "name": "Cadastrar usuario (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var response = pm.response.json();",
+                  "if (response && response.id) {",
+                  "    pm.collectionVariables.set('usuarioId', response.id);",
+                  "    pm.collectionVariables.set('usuarioEmail', response.email);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Coordenador Teste\",\n  \"cpf\": \"86025591054\",\n  \"email\": \"coord.teste@classvision.com\",\n  \"senha\": \"SenhaForte123\",\n  \"dataNascimento\": \"15/09/1990\",\n  \"role\": \"COORDENADOR\",\n  \"instituicaoId\": {{instituicaoId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/cadastrar-usuario",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "usuarios", "cadastrar-usuario"]
+            },
+            "description": "Cadastra um usuario na instituicao `instituicaoId` e salva o id e o e-mail retornados em `usuarioId` e `usuarioEmail`."
+          }
+        },
+        {
           "name": "Listar usuarios",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "{{apiPrefix}}",
-                "usuarios"
-              ]
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/listar-usuarios",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "usuarios", "listar-usuarios"]
             }
           }
         },
         {
-          "name": "Obter usuario por id",
+          "name": "Buscar usuario por id",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "{{apiPrefix}}",
-                "usuarios",
-                "{{usuarioId}}"
-              ]
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/buscar-usuario/{{usuarioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "usuarios", "buscar-usuario", "{{usuarioId}}"]
             }
           }
         },
         {
-          "name": "Obter usuario por email",
+          "name": "Buscar usuario por email",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/email/{{usuarioEmail}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "{{apiPrefix}}",
-                "usuarios",
-                "email",
-                "{{usuarioEmail}}"
-              ]
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/buscar-usuario-por-email/{{usuarioEmail}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "usuarios", "buscar-usuario-por-email", "{{usuarioEmail}}"]
             }
           }
         },
@@ -190,50 +292,29 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Administrador Atualizado\",\n  \"cpf\": \"86025591054\",\n  \"email\": \"admin@classvision.com\",\n  \"senha\": \"admin123456\",\n  \"dataNascimento\": \"01/01/1990\",\n  \"role\": \"ADMINISTRADOR\"\n}"
+              "raw": "{\n  \"nome\": \"Coordenador Teste Atualizado\",\n  \"cpf\": \"86025591054\",\n  \"email\": \"coord.teste@classvision.com\",\n  \"senha\": \"SenhaForte123\",\n  \"dataNascimento\": \"15/09/1990\",\n  \"role\": \"COORDENADOR\",\n  \"instituicaoId\": {{instituicaoId}}\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "{{apiPrefix}}",
-                "usuarios",
-                "{{usuarioId}}"
-              ]
-            }
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/atualizar-usuario/{{usuarioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "usuarios", "atualizar-usuario", "{{usuarioId}}"]
+            },
+            "description": "Atualizacao completa: todos os campos obrigatorios devem ser enviados, inclusive a senha."
           }
         },
         {
           "name": "Desativar usuario (ADMIN)",
           "request": {
             "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}/desativar",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "{{apiPrefix}}",
-                "usuarios",
-                "{{usuarioId}}",
-                "desativar"
-              ]
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/desativar-usuario/{{usuarioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "usuarios", "desativar-usuario", "{{usuarioId}}"]
             }
           }
         },
@@ -241,47 +322,25 @@
           "name": "Ativar usuario (ADMIN)",
           "request": {
             "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}/ativar",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "{{apiPrefix}}",
-                "usuarios",
-                "{{usuarioId}}",
-                "ativar"
-              ]
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/ativar-usuario/{{usuarioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "usuarios", "ativar-usuario", "{{usuarioId}}"]
             }
           }
         },
         {
-          "name": "Deletar usuario (ADMIN)",
+          "name": "Excluir usuario (ADMIN)",
           "request": {
             "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/{{usuarioId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "{{apiPrefix}}",
-                "usuarios",
-                "{{usuarioId}}"
-              ]
-            }
+              "raw": "{{baseUrl}}{{apiPrefix}}/usuarios/excluir-usuario/{{usuarioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{apiPrefix}}", "usuarios", "excluir-usuario", "{{usuarioId}}"]
+            },
+            "description": "Exclusao definitiva. Prefira desativar o usuario."
           }
         }
       ]
@@ -292,15 +351,15 @@
         {
           "name": "H2 Console",
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
+            "header": [],
             "url": {
               "raw": "{{baseUrl}}/h2-console",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "h2-console"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["h2-console"]
             },
             "description": "Endpoint da console H2 (uso manual no navegador)."
           }
@@ -309,4 +368,3 @@
     }
   ]
 }
-
