@@ -1,75 +1,87 @@
--- PUBLIC.CV02_ROLES definição
--- Drop table
--- DROP TABLE PUBLIC.CV02_ROLES;
+-- =====================================================================
+-- CV Authentication Service - DDL MySQL 8 (Railway)
+-- Script completo para criar o banco do zero.
+--
+-- Execute conectado ao banco do Railway (por padrão, o banco "railway").
+-- Os nomes das tabelas estão em minúsculas porque o Hibernate/Spring Boot
+-- (CamelCaseToUnderscoresNamingStrategy) converte CV01_USUARIOS para
+-- cv01_usuarios, e o MySQL no Linux diferencia maiúsculas em nomes de tabela.
+-- =====================================================================
 
-CREATE TABLE PUBLIC.CV02_ROLES (
-	ID BIGINT NOT NULL AUTO_INCREMENT,
-	DESCRICAO CHARACTER VARYING(255),
-	NOME CHARACTER VARYING(255) NOT NULL,
-	CONSTRAINT CONSTRAINT_3 PRIMARY KEY (ID),
-	CONSTRAINT UKRCMFONWMMGU9ANNJ9LGOL61AE UNIQUE (NOME)
-);
+SET NAMES utf8mb4;
 
-CREATE UNIQUE INDEX PRIMARY_KEY_3 ON
-PUBLIC.CV02_ROLES (ID);
+-- ---------------------------------------------------------------------
+-- cv02_roles
+-- ---------------------------------------------------------------------
+-- DROP TABLE IF EXISTS cv01_usuarios;
+-- DROP TABLE IF EXISTS cv03_instituicoes;
+-- DROP TABLE IF EXISTS cv02_roles;
 
-CREATE UNIQUE INDEX UKRCMFONWMMGU9ANNJ9LGOL61AE_INDEX_3 ON
-PUBLIC.CV02_ROLES (NOME);
--- PUBLIC.CV01_USUARIOS definição
--- Drop table
--- DROP TABLE PUBLIC.CV01_USUARIOS;
+CREATE TABLE IF NOT EXISTS cv02_roles (
+    id          BIGINT       NOT NULL AUTO_INCREMENT,
+    descricao   VARCHAR(255)          NULL,
+    nome        VARCHAR(255) NOT NULL,
+    CONSTRAINT pk_cv02_roles PRIMARY KEY (id),
+    CONSTRAINT uk_cv02_roles_nome UNIQUE (nome)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE PUBLIC.CV01_USUARIOS (
-	ID BIGINT NOT NULL AUTO_INCREMENT,
-	ATIVO BOOLEAN NOT NULL,
-	ATUALIZADO_EM TIMESTAMP,
-	CPF CHARACTER VARYING(255) NOT NULL,
-	CRIADO_EM TIMESTAMP NOT NULL,
-	DATA_NASCIMENTO DATE,
-	EMAIL CHARACTER VARYING(255) NOT NULL,
-	NOME CHARACTER VARYING(255) NOT NULL,
-	SENHA CHARACTER VARYING(255) NOT NULL,
-	BIGINT_ROLE_ID BIGINT NOT NULL,
-	CONSTRAINT CONSTRAINT_E PRIMARY KEY (ID),
-	CONSTRAINT UK2LA2Y02LRQRS2XXWO5SEHIFM5 UNIQUE (EMAIL),
-	CONSTRAINT UKMXHKBY5167S4T2Q6DKXBS9YJE UNIQUE (CPF),
-	CONSTRAINT FK406KBYBS7XI6MD4B3C068CKN9 FOREIGN KEY (BIGINT_ROLE_ID) REFERENCES PUBLIC.CV02_ROLES(ID)
-);
+-- ---------------------------------------------------------------------
+-- cv03_instituicoes
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS cv03_instituicoes (
+    id             BIGINT       NOT NULL AUTO_INCREMENT,
+    nome           VARCHAR(255) NOT NULL,
+    cnpj           VARCHAR(14)  NOT NULL,
+    telefone       VARCHAR(20)  NOT NULL,
+    situacao       VARCHAR(20)  NOT NULL,
+    criado_em      DATETIME(6)  NOT NULL,
+    atualizado_em  DATETIME(6)  NULL,
+    CONSTRAINT pk_cv03_instituicoes PRIMARY KEY (id),
+    CONSTRAINT uk_cv03_instituicoes_cnpj UNIQUE (cnpj),
+    CONSTRAINT ck_cv03_instituicoes_situacao CHECK (situacao IN ('ATIVA', 'INATIVA'))
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
-CREATE INDEX FK406KBYBS7XI6MD4B3C068CKN9_INDEX_E ON
-PUBLIC.CV01_USUARIOS (BIGINT_ROLE_ID);
+-- ---------------------------------------------------------------------
+-- cv01_usuarios
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS cv01_usuarios (
+    id               BIGINT       NOT NULL AUTO_INCREMENT,
+    ativo            BIT(1)       NOT NULL,
+    atualizado_em    DATETIME(6)           NULL,
+    cpf              VARCHAR(255) NOT NULL,
+    criado_em        DATETIME(6)  NOT NULL,
+    data_nascimento  DATE                  NULL,
+    email            VARCHAR(255) NOT NULL,
+    nome             VARCHAR(255) NOT NULL,
+    senha            VARCHAR(255) NOT NULL,
+    bigint_role_id   BIGINT       NOT NULL,
+    bigint_instituicao_id BIGINT  NOT NULL,
+    CONSTRAINT pk_cv01_usuarios PRIMARY KEY (id),
+    CONSTRAINT uk_cv01_usuarios_email UNIQUE (email),
+    CONSTRAINT uk_cv01_usuarios_cpf UNIQUE (cpf),
+    INDEX idx_cv01_usuarios_role (bigint_role_id),
+    INDEX idx_cv01_usuarios_instituicao (bigint_instituicao_id),
+    CONSTRAINT fk_cv01_usuarios_role FOREIGN KEY (bigint_role_id)
+        REFERENCES cv02_roles (id),
+    CONSTRAINT fk_cv01_usuarios_instituicao FOREIGN KEY (bigint_instituicao_id)
+        REFERENCES cv03_instituicoes (id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
-CREATE UNIQUE INDEX PRIMARY_KEY_E ON
-PUBLIC.CV01_USUARIOS (ID);
-
-CREATE UNIQUE INDEX UK2LA2Y02LRQRS2XXWO5SEHIFM5_INDEX_E ON
-PUBLIC.CV01_USUARIOS (EMAIL);
-
-CREATE UNIQUE INDEX UKMXHKBY5167S4T2Q6DKXBS9YJE_INDEX_E ON
-PUBLIC.CV01_USUARIOS (CPF);
-
--- PUBLIC.CV03_INSTITUICOES definição (migração 001 - ver docs/database/ddl/migracoes)
--- Drop table
--- DROP TABLE PUBLIC.CV03_INSTITUICOES;
-
-CREATE TABLE PUBLIC.CV03_INSTITUICOES (
-	ID BIGINT NOT NULL AUTO_INCREMENT,
-	NOME CHARACTER VARYING(255) NOT NULL,
-	CNPJ CHARACTER VARYING(14) NOT NULL,
-	TELEFONE CHARACTER VARYING(20) NOT NULL,
-	SITUACAO CHARACTER VARYING(20) NOT NULL,
-	CRIADO_EM TIMESTAMP NOT NULL,
-	ATUALIZADO_EM TIMESTAMP,
-	CONSTRAINT PK_CV03_INSTITUICOES PRIMARY KEY (ID),
-	CONSTRAINT UK_CV03_INSTITUICOES_CNPJ UNIQUE (CNPJ),
-	CONSTRAINT CK_CV03_INSTITUICOES_SITUACAO CHECK (SITUACAO IN ('ATIVA', 'INATIVA'))
-);
-
--- Vínculo usuário -> instituição (obrigatório)
-ALTER TABLE PUBLIC.CV01_USUARIOS ADD COLUMN BIGINT_INSTITUICAO_ID BIGINT NOT NULL;
-
-ALTER TABLE PUBLIC.CV01_USUARIOS ADD CONSTRAINT FK_CV01_USUARIOS_INSTITUICAO
-	FOREIGN KEY (BIGINT_INSTITUICAO_ID) REFERENCES PUBLIC.CV03_INSTITUICOES(ID);
-
-CREATE INDEX IDX_CV01_USUARIOS_INSTITUICAO ON
-PUBLIC.CV01_USUARIOS (BIGINT_INSTITUICAO_ID);
+-- ---------------------------------------------------------------------
+-- Carga inicial de roles (mesmas do DataInitializer / RolesEnum).
+-- Opcional: o DataInitializer cria as roles, a instituição padrão
+-- "ClassVision" e o usuário admin automaticamente na primeira subida.
+-- ---------------------------------------------------------------------
+INSERT IGNORE INTO cv02_roles (nome, descricao) VALUES
+    ('ADMINISTRADOR', 'Administrador geral da plataforma'),
+    ('ADMIN_INSTITUICAO', 'Administrador da instituição'),
+    ('PROFESSOR',     'Professor da instituição'),
+    ('COORDENADOR',   'Coordenador de curso'),
+    ('SECRETARIO',    'Secretário da instituição'),
+    ('ASSISTENTE',    'Assistente de coordenação');

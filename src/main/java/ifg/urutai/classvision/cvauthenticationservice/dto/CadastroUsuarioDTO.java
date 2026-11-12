@@ -42,7 +42,7 @@ public class CadastroUsuarioDTO {
 
     private String role;
 
-    @NotNull(message = "O campo 'instituicaoId' é obrigatório.")
-    @Schema(example = "1", description = "ID da instituição (ATIVA) à qual o usuário pertence")
+    @Schema(example = "1", description = "ID da instituição (ATIVA) do usuário. Obrigatório para o ADMINISTRADOR geral; "
+            + "para o ADMIN_INSTITUICAO pode ser omitido (usa sempre a própria instituição).")
     private Long instituicaoId;
 }

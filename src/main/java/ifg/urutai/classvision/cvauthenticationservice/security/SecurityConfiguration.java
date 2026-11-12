@@ -61,28 +61,36 @@ public class SecurityConfiguration {
                         // Documentação Swagger/OpenAPI pública para facilitar testes.
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                        // Usuários - operações administrativas: apenas ADMINISTRADOR.
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios/cadastrar-usuario").hasRole("ADMINISTRADOR")
-                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/excluir-usuario/{id}").hasRole("ADMINISTRADOR")
+                        // As rotas abaixo definem QUEM pode chamar. O escopo (só a própria instituição)
+                        // e o nível de role (sem escalada de privilégio) são validados em ControleAcesso.
+
+                        // Usuários - gerenciamento: administrador geral e administrador da instituição.
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/cadastrar-usuario")
+                        .hasAnyRole("ADMINISTRADOR", "ADMIN_INSTITUICAO")
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/atualizar-usuario/{id}")
+                        .hasAnyRole("ADMINISTRADOR", "ADMIN_INSTITUICAO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/excluir-usuario/{id}")
+                        .hasAnyRole("ADMINISTRADOR", "ADMIN_INSTITUICAO")
                         .requestMatchers(HttpMethod.PATCH,
                                 "/api/usuarios/desativar-usuario/{id}",
-                                "/api/usuarios/ativar-usuario/{id}").hasRole("ADMINISTRADOR")
+                                "/api/usuarios/ativar-usuario/{id}")
+                        .hasAnyRole("ADMINISTRADOR", "ADMIN_INSTITUICAO")
 
-                        // Usuários - leituras e atualização: ADMINISTRADOR e COORDENADOR.
+                        // Usuários - consulta: também o coordenador (somente leitura).
                         .requestMatchers(HttpMethod.GET,
                                 "/api/usuarios/listar-usuarios",
                                 "/api/usuarios/buscar-usuario/{id}",
                                 "/api/usuarios/buscar-usuario-por-email/{email}")
-                        .hasAnyRole("ADMINISTRADOR", "COORDENADOR")
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/atualizar-usuario/{id}")
-                        .hasAnyRole("ADMINISTRADOR", "COORDENADOR")
+                        .hasAnyRole("ADMINISTRADOR", "ADMIN_INSTITUICAO", "COORDENADOR")
 
-                        // Instituições: escrita apenas ADMINISTRADOR; leitura para qualquer autenticado.
+                        // Instituições: criar, ativar e desativar só o administrador geral;
+                        // atualizar também o admin da instituição (a própria); consultar qualquer autenticado.
                         .requestMatchers(HttpMethod.POST, "/api/instituicoes/cadastrar-instituicao").hasRole("ADMINISTRADOR")
-                        .requestMatchers(HttpMethod.PUT, "/api/instituicoes/atualizar-instituicao/{id}").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PATCH,
                                 "/api/instituicoes/ativar-instituicao/{id}",
                                 "/api/instituicoes/desativar-instituicao/{id}").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/instituicoes/atualizar-instituicao/{id}")
+                        .hasAnyRole("ADMINISTRADOR", "ADMIN_INSTITUICAO")
                         .requestMatchers(HttpMethod.GET,
                                 "/api/instituicoes/listar-instituicoes",
                                 "/api/instituicoes/buscar-instituicao/{id}").authenticated()

@@ -38,6 +38,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String username = jwtTokenProvider.extractUsername(jwt);
                 UserDetails userDetails = usuarioDetailsService.loadUserByUsername(username);
 
+                // Usuário desativado perde o acesso na hora, mesmo com token ainda dentro da validade.
+                if (!userDetails.isEnabled()) {
+                    log.debug("Token de usuário desativado recusado: {}", username);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

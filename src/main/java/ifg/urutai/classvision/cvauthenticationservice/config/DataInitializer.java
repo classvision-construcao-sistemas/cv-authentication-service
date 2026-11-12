@@ -1,5 +1,6 @@
 package ifg.urutai.classvision.cvauthenticationservice.config;
 
+import ifg.urutai.classvision.cvauthenticationservice.enums.RolesEnum;
 import ifg.urutai.classvision.cvauthenticationservice.enums.SituacaoInstituicaoEnum;
 import ifg.urutai.classvision.cvauthenticationservice.model.Instituicao;
 import ifg.urutai.classvision.cvauthenticationservice.model.Role;
@@ -30,42 +31,15 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Criar roles padrão se não existirem
-        if (roleRepository.count() == 0) {
-            log.info("Inicializando roles padrão...");
-
-            Role adminRole = Role.builder()
-                    .nome("ADMINISTRADOR")
-                    .descricao("Administrador do sistema")
-                    .build();
-
-            Role professorRole = Role.builder()
-                    .nome("PROFESSOR")
-                    .descricao("Professor da instituição")
-                    .build();
-
-            Role coordenadorRole = Role.builder()
-                    .nome("COORDENADOR")
-                    .descricao("Coordenador de curso")
-                    .build();
-
-            Role secretarioRole = Role.builder()
-                    .nome("SECRETARIO")
-                    .descricao("Secretário da instituição")
-                    .build();
-
-            Role assistenteRole = Role.builder()
-                    .nome("ASSISTENTE")
-                    .descricao("Assistente de coordenação")
-                    .build();
-
-            roleRepository.save(adminRole);
-            roleRepository.save(professorRole);
-            roleRepository.save(coordenadorRole);
-            roleRepository.save(secretarioRole);
-            roleRepository.save(assistenteRole);
-
-            log.info("Roles inicializadas com sucesso!");
+        // Garante que todas as roles do RolesEnum existam (cria as que faltarem, ex.: ADMIN_INSTITUICAO).
+        for (RolesEnum roleEnum : RolesEnum.values()) {
+            if (roleRepository.findByNome(roleEnum.name()).isEmpty()) {
+                roleRepository.save(Role.builder()
+                        .nome(roleEnum.name())
+                        .descricao(roleEnum.getDescricao())
+                        .build());
+                log.info("Role criada: {}", roleEnum.name());
+            }
         }
 
         // Criar usuário administrador padrão se não existir

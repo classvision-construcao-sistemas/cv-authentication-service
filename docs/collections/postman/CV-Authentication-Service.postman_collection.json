@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "9f0ddf5b-c418-49d8-804b-554865f99563",
-    "name": "CV Authentication Service (H2)",
+    "name": "CV Authentication Service",
     "description": "Colecao para testes da API.\n\nOrdem sugerida:\n1. Autenticacao > Login (salva o token em `authToken`)\n2. Instituicoes > Cadastrar instituicao (salva o id em `instituicaoId`)\n3. Usuarios > Cadastrar usuario (salva o id em `usuarioId`)\n\nTodas as requisicoes (exceto o login) usam o token salvo em `authToken` via autenticacao Bearer da colecao.\n\nRegras de permissao:\n- Login: publico\n- Usuarios: cadastrar, ativar, desativar e excluir apenas ADMINISTRADOR; listar, buscar e atualizar ADMINISTRADOR ou COORDENADOR\n- Instituicoes: cadastrar, atualizar, ativar e desativar apenas ADMINISTRADOR; listar e buscar qualquer usuario autenticado\n\nDatas no formato dd/MM/yyyy.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -158,7 +158,7 @@
           }
         },
         {
-          "name": "Atualizar instituicao (ADMIN)",
+          "name": "Atualizar instituicao (ADMIN / ADMIN_INSTITUICAO)",
           "request": {
             "method": "PUT",
             "header": [
@@ -208,7 +208,7 @@
       "name": "Usuarios",
       "item": [
         {
-          "name": "Cadastrar usuario (ADMIN)",
+          "name": "Cadastrar usuario (ADMIN / ADMIN_INSTITUICAO)",
           "event": [
             {
               "listen": "test",
@@ -307,7 +307,7 @@
           }
         },
         {
-          "name": "Desativar usuario (ADMIN)",
+          "name": "Desativar usuario (ADMIN / ADMIN_INSTITUICAO)",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -319,7 +319,7 @@
           }
         },
         {
-          "name": "Ativar usuario (ADMIN)",
+          "name": "Ativar usuario (ADMIN / ADMIN_INSTITUICAO)",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -331,7 +331,7 @@
           }
         },
         {
-          "name": "Excluir usuario (ADMIN)",
+          "name": "Excluir usuario (ADMIN / ADMIN_INSTITUICAO)",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -341,27 +341,6 @@
               "path": ["{{apiPrefix}}", "usuarios", "excluir-usuario", "{{usuarioId}}"]
             },
             "description": "Exclusao definitiva. Prefira desativar o usuario."
-          }
-        }
-      ]
-    },
-    {
-      "name": "Infra",
-      "item": [
-        {
-          "name": "H2 Console",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/h2-console",
-              "host": ["{{baseUrl}}"],
-              "path": ["h2-console"]
-            },
-            "description": "Endpoint da console H2 (uso manual no navegador)."
           }
         }
       ]

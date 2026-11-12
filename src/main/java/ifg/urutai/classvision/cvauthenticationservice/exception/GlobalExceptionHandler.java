@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -56,6 +57,14 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status)
                 .body(buildError(status, "Parametro invalido na requisicao.", "Corrija os parametros e tente novamente."));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponseDTO> handleAccessDenied(AccessDeniedException ex) {
+        // Regras de escopo/nível validadas na camada de serviço (ControleAcesso).
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        return ResponseEntity.status(status)
+                .body(buildError(status, ex.getMessage(), "Solicite a operação a um administrador com permissão adequada."));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

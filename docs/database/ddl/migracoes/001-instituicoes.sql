@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Migração 001 - Instituições (MySQL 8 / Railway)
 -- Use SOMENTE se você já executou a versão anterior do
--- DDL-CV-Authentication-Service-MySQL.sql (sem instituições).
+-- DDL-CV-Authentication-Service.sql (sem instituições).
 -- Para um banco novo, execute apenas o DDL completo atualizado.
 -- =====================================================================
 
