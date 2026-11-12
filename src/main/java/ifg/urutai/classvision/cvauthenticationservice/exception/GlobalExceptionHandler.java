@@ -5,11 +5,13 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -56,6 +58,23 @@ public class GlobalExceptionHandler {
                 .body(buildError(status, "Parametro invalido na requisicao.", "Corrija os parametros e tente novamente."));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponseDTO> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        // JSON malformado ou campo com formato inválido (ex.: data fora de dd/MM/yyyy).
+        log.warn("Corpo da requisicao invalido: {}", ex.getMostSpecificCause().getMessage());
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status)
+                .body(buildError(status, "Corpo da requisicao invalido ou com campo em formato incorreto.",
+                        "Verifique o JSON enviado. Datas devem estar no formato dd/MM/yyyy (ex.: 25/03/1990)."));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiErrorResponseDTO> handleNoResourceFound() {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return ResponseEntity.status(status)
+                .body(buildError(status, "Recurso nao encontrado.", "Verifique a URL e o metodo HTTP da requisicao."));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponseDTO> handleGeneric(Exception ex) {
         log.error("Erro inesperado na API", ex);
@@ -79,7 +98,8 @@ public class GlobalExceptionHandler {
         }
 
         String normalized = descricao.toLowerCase(Locale.ROOT);
-        if (normalized.contains("nao encontrado") || normalized.contains("não encontrado")) {
+        if (normalized.contains("nao encontrado") || normalized.contains("não encontrado")
+                || normalized.contains("nao encontrada") || normalized.contains("não encontrada")) {
             return HttpStatus.NOT_FOUND;
         }
         if (normalized.contains("ja existente") || normalized.contains("já existente")) {
@@ -98,7 +118,7 @@ public class GlobalExceptionHandler {
             return "Confirme o identificador informado e tente novamente.";
         }
         if (status == HttpStatus.CONFLICT) {
-            return "Use outro valor para os dados unicos (como email ou CPF).";
+            return "Use outro valor para os dados unicos (como email, CPF ou CNPJ).";
         }
         if (status == HttpStatus.UNAUTHORIZED) {
             return "Valide suas credenciais e gere um novo token, se necessario.";

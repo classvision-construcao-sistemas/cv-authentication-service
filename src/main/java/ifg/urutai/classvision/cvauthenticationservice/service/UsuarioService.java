@@ -33,6 +33,7 @@ public class UsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final InstituicaoService instituicaoService;
 
     /**
      * Registra um novo usuário (apenas administrador pode fazer isso)
@@ -61,6 +62,7 @@ public class UsuarioService {
                 .build();
 
         usuario.setRole(resolveRole(dto.getRole()));
+        usuario.setInstituicao(instituicaoService.buscarAtivaParaVinculo(dto.getInstituicaoId()));
 
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
         log.info("Usuário registrado com sucesso: {}", usuarioSalvo.getId());
@@ -81,7 +83,7 @@ public class UsuarioService {
             );
 
             Usuario usuario = (Usuario) authentication.getPrincipal();
-            String token = jwtTokenProvider.generateTokenWithRoles(usuario);
+            String token = jwtTokenProvider.generateToken(usuario);
 
             log.info("Usuário autenticado com sucesso: {}", usuario.getId());
 
@@ -165,6 +167,11 @@ public class UsuarioService {
             usuario.setRole(resolveRole(dto.getRole()));
         }
 
+        // Só valida a situação se a instituição for trocada; manter a atual é sempre permitido.
+        if (!dto.getInstituicaoId().equals(usuario.getInstituicao().getId())) {
+            usuario.setInstituicao(instituicaoService.buscarAtivaParaVinculo(dto.getInstituicaoId()));
+        }
+
         Usuario usuarioAtualizado = usuarioRepository.save(usuario);
         log.info("Usuário atualizado com sucesso: {}", usuarioAtualizado.getId());
         return convertToResponseDTO(usuarioAtualizado);
@@ -227,6 +234,8 @@ public class UsuarioService {
                 .email(usuario.getEmail())
                 .dataNascimento(usuario.getDataNascimento())
                 .role(usuario.getRole() != null ? usuario.getRole().getNome() : null)
+                .instituicaoId(usuario.getInstituicao() != null ? usuario.getInstituicao().getId() : null)
+                .instituicaoNome(usuario.getInstituicao() != null ? usuario.getInstituicao().getNome() : null)
                 .criadoEm(usuario.getCriadoEm())
                 .atualizadoEm(usuario.getAtualizadoEm())
                 .ativo(usuario.getAtivo())

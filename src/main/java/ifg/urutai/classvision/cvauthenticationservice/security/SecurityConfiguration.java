@@ -58,11 +58,21 @@ public class SecurityConfiguration {
                         // Login fica público para obtenção do token.
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 
+                        // Documentação Swagger/OpenAPI pública para facilitar testes.
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
                         // Operações administrativas: apenas ADMINISTRADOR.
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/usuarios/{id}").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios/{id}/desativar").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios/{id}/ativar").hasRole("ADMINISTRADOR")
+
+                        // Instituições: escrita apenas ADMINISTRADOR; leitura para qualquer autenticado.
+                        .requestMatchers(HttpMethod.POST, "/api/instituicoes").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/instituicoes/{id}").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PATCH, "/api/instituicoes/{id}/ativar", "/api/instituicoes/{id}/desativar")
+                        .hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.GET, "/api/instituicoes", "/api/instituicoes/{id}").authenticated()
 
                         // Leituras e atualização exigem autenticação com perfil autorizado.
                         .requestMatchers(HttpMethod.GET, "/api/usuarios", "/api/usuarios/{id}", "/api/usuarios/email/**")

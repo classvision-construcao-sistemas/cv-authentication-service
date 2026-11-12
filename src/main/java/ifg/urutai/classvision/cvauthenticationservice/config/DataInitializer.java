@@ -1,6 +1,9 @@
 package ifg.urutai.classvision.cvauthenticationservice.config;
 
+import ifg.urutai.classvision.cvauthenticationservice.enums.SituacaoInstituicaoEnum;
+import ifg.urutai.classvision.cvauthenticationservice.model.Instituicao;
 import ifg.urutai.classvision.cvauthenticationservice.model.Role;
+import ifg.urutai.classvision.cvauthenticationservice.repository.InstituicaoRepository;
 import ifg.urutai.classvision.cvauthenticationservice.model.Usuario;
 import ifg.urutai.classvision.cvauthenticationservice.repository.RoleRepository;
 import ifg.urutai.classvision.cvauthenticationservice.repository.UsuarioRepository;
@@ -17,8 +20,12 @@ import org.springframework.stereotype.Component;
 @NullMarked
 public class DataInitializer implements CommandLineRunner {
 
+    // CNPJ reservado para a instituição padrão da plataforma (não é um CNPJ real).
+    public static final String CNPJ_INSTITUICAO_PADRAO = "00000000000000";
+
     private final RoleRepository roleRepository;
     private final UsuarioRepository usuarioRepository;
+    private final InstituicaoRepository instituicaoRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -65,6 +72,19 @@ public class DataInitializer implements CommandLineRunner {
         if (!usuarioRepository.existsByEmail("admin@classvision.com")) {
             log.info("Criando usuário administrador padrão...");
 
+            // Instituição padrão (dona da plataforma) do administrador. Só é criada junto com o
+            // admin: depois disso o CNPJ pode ser trocado pelo real sem gerar uma nova a cada subida.
+            Instituicao instituicaoPadrao = instituicaoRepository.findByCnpj(CNPJ_INSTITUICAO_PADRAO)
+                    .orElseGet(() -> {
+                        log.info("Criando instituição padrão...");
+                        return instituicaoRepository.save(Instituicao.builder()
+                                .nome("ClassVision")
+                                .cnpj(CNPJ_INSTITUICAO_PADRAO)
+                                .telefone("0000000000")
+                                .situacao(SituacaoInstituicaoEnum.ATIVA)
+                                .build());
+                    });
+
             Role adminRole = roleRepository.findByNome("ADMINISTRADOR")
                     .orElseThrow(() -> new RuntimeException("Role ADMINISTRADOR não encontrada"));
 
@@ -75,6 +95,7 @@ public class DataInitializer implements CommandLineRunner {
                     .senha(passwordEncoder.encode("admin123456"))
                     .ativo(true)
                     .role(adminRole)
+                    .instituicao(instituicaoPadrao)
                     .build();
 
             usuarioRepository.save(adminUser);

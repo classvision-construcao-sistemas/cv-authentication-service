@@ -20,7 +20,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"role"})
+@ToString(exclude = {"role", "instituicao"})
 @Builder
 public class Usuario implements UserDetails {
 
@@ -52,6 +52,11 @@ public class Usuario implements UserDetails {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "BIGINT_ROLE_ID", nullable = false)
     private Role role;
+
+    // Todo usuário pertence a uma instituição (N:1).
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "BIGINT_INSTITUICAO_ID", nullable = false)
+    private Instituicao instituicao;
 
     @Column(name = "CRIADO_EM", nullable = false, updatable = false)
     private LocalDateTime criadoEm;

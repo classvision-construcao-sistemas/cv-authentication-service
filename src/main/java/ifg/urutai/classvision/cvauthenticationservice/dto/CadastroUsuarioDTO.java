@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.hibernate.validator.constraints.br.CPF;
 
 @Getter
@@ -35,7 +36,13 @@ public class CadastroUsuarioDTO {
     private String senha;
 
     @JsonFormat(pattern = "dd/MM/yyyy")
+    @Schema(type = "string", pattern = "dd/MM/yyyy", example = "25/03/1990",
+            description = "Data de nascimento no formato dd/MM/yyyy")
     private LocalDate dataNascimento;
 
     private String role;
+
+    @NotNull(message = "O campo 'instituicaoId' é obrigatório.")
+    @Schema(example = "1", description = "ID da instituição (ATIVA) à qual o usuário pertence")
+    private Long instituicaoId;
 }
